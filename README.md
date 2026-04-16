@@ -1,6 +1,6 @@
 # VibeMovil Lead Engine (España)
 
-Sistema completo (MVP funcional) para captación y gestión automática de leads para telecom en España, con enfoque RGPD y operación comercial rápida.
+Sistema completo (MVP funcional) para captación y gestión automática de leads para telecom en España, con enfoque RGPD y operación comercial rápida. Incluye modo 100% gratuito sin backend (solo frontend + localStorage).
 
 ## Qué incluye
 
@@ -9,6 +9,7 @@ Sistema completo (MVP funcional) para captación y gestión automática de leads
 - Acción comercial recomendada automáticamente.
 - Persistencia en SQLite.
 - Endpoints para listar y operar leads.
+- Vista local sin API para operar sin coste (almacenamiento local del navegador).
 
 ## Arquitectura
 
@@ -75,18 +76,16 @@ curl -X POST http://localhost:8000/leads \
 - Crear panel de métricas (CPL, contactabilidad, conversión).
 
 
-## Vista previa rápida (UI demo)
+## Vista previa rápida (sin API y sin coste)
 
-Abre `frontend/index.html` en tu navegador para ver una maqueta funcional de captura y listado de leads.
+Abre `frontend/index.html` en tu navegador para usar el sistema directamente (sin servidor):
 
-1. Levanta la API:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-2. Abre la UI servida por FastAPI en:
-   - `http://localhost:8000/`
-3. (Opcional) También puedes abrir `frontend/index.html` de forma manual.
-4. Verifica que `API Base URL` sea `http://localhost:8000` y crea leads reales desde la vista.
+1. Abre `frontend/index.html`.
+2. Crea leads en el formulario.
+3. Se guardan automáticamente en `localStorage`.
+4. Puedes borrar todo desde el botón **Borrar todos**.
+
+> Si luego quieres API/CRM, puedes activar el backend FastAPI de este mismo repo.
 
 ## Despliegue en GitHub
 

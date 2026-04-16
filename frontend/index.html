@@ -48,9 +48,9 @@
           <label><input id="wants_portability" type="checkbox" checked /> Quiere portabilidad</label>
           <label><input id="has_confirmed_coverage" type="checkbox" checked /> Cobertura confirmada</label>
           <label><input id="gdpr_consent" type="checkbox" checked /> Consentimiento RGPD</label>
-          <label>API Base URL</label><input id="api_base" value="http://localhost:8000" />
-          <button id="btn">Crear lead real</button>
-          <p id="status"><small>Conecta con tu API y crea leads reales.</small></p>
+          <button id="btn">Guardar lead</button>
+          <button id="clear" type="button" style="background:#a0a8b3">Borrar todos</button>
+          <p id="status"><small>Funciona sin API: guarda todo en tu navegador (localStorage).</small></p>
         </section>
 
         <section class="card">
@@ -58,16 +58,46 @@
           <div id="results"></div>
         </section>
       </div>
-      <p style="margin-top:16px">Esta vista está conectada a <code>POST /leads</code> y <code>GET /leads</code>.</p>
+      <p style="margin-top:16px">Modo gratuito sin servidor: diseño funcional + almacenamiento local.</p>
     </div>
 
     <script>
       const results = document.getElementById('results');
-      let demoLeads = [];
+      let demoLeads = JSON.parse(localStorage.getItem('vibemovil_leads') || '[]');
       const statusEl = document.getElementById('status');
+      
+      function persist() {
+        localStorage.setItem('vibemovil_leads', JSON.stringify(demoLeads));
+      }
 
-      function apiBase() {
-        return document.getElementById('api_base').value.replace(/\/$/, '');
+      function scoreLead(lead) {
+        let score = 0;
+        if (lead.source === 'meta_ads') score += 20;
+        else if (lead.source === 'referido') score += 30;
+        else score += 10;
+        if (lead.wants_portability) score += 40;
+        if (lead.has_confirmed_coverage) score += 25;
+        if (lead.best_time_slot === 'manana' || lead.best_time_slot === 'tarde') score += 15;
+        else score += 5;
+        if (lead.budget_eur >= 20 && lead.budget_eur <= 60) score += 20;
+        else if (lead.budget_eur > 60) score += 10;
+        if (lead.lead_type === 'fibra_movil') score += 15;
+        if (lead.lead_type === 'autonomo_pyme') score += 20;
+        return Math.min(score, 100);
+      }
+
+      function priority(score) {
+        if (score >= 75) return 'alta';
+        if (score >= 45) return 'media';
+        return 'baja';
+      }
+
+      function actionFor(lead, score) {
+        if (score >= 75) return 'Llamar en <5 min y enviar email de oferta personalizada';
+        if (lead.preferred_channel === 'sms') return 'Enviar SMS y programar llamada en 30 min';
+        if (lead.preferred_channel === 'email') return 'Enviar email con planes y recordatorio';
+        if (lead.preferred_channel === 'whatsapp') return 'Pedir autorización explícita antes de WhatsApp';
+        return 'Programar llamada comercial en la franja indicada';
       }
 
       function render() {
@@ -85,18 +115,7 @@
         `).join('');
       }
 
-      async function loadLeads() {
-        try {
-          const response = await fetch(`${apiBase()}/leads?limit=20`);
-          if (!response.ok) throw new Error(`GET /leads -> ${response.status}`);
-          demoLeads = await response.json();
-          render();
-        } catch (error) {
-          statusEl.innerHTML = `<small style="color:#e74c3c">Error cargando leads: ${error.message}</small>`;
-        }
-      }
-
-      document.getElementById('btn').addEventListener('click', async () => {
+      document.getElementById('btn').addEventListener('click', () => {
         const payload = {
           full_name: document.getElementById('full_name').value,
           phone: document.getElementById('phone').value,
@@ -114,29 +133,34 @@
           source: document.getElementById('source').value,
         };
 
-        try {
-          const response = await fetch(`${apiBase()}/leads`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.detail || `POST /leads -> ${response.status}`);
-          statusEl.innerHTML = '<small style="color:#0b9b54">Lead creado correctamente.</small>';
-          await loadLeads();
-        } catch (error) {
-          statusEl.innerHTML = `<small style="color:#e74c3c">Error creando lead: ${error.message}</small>`;
+        if (!payload.gdpr_consent) {
+          statusEl.innerHTML = '<small style="color:#e74c3c">Debes aceptar consentimiento RGPD.</small>';
+          return;
         }
+
+        if (!payload.full_name || !payload.phone || !payload.postal_code) {
+          statusEl.innerHTML = '<small style="color:#e74c3c">Completa nombre, teléfono y código postal.</small>';
+          return;
+        }
+
+        const score = scoreLead(payload);
+        demoLeads.unshift({
+          ...payload,
+          id: Date.now(),
+          score,
+          priority: priority(score),
+          action: actionFor(payload, score),
+        });
+        persist();
+        render();
+        statusEl.innerHTML = '<small style="color:#0b9b54">Lead guardado localmente sin API.</small>';
       });
 
-      loadLeads().catch(() => {
-        demoLeads.unshift({
-          full_name: 'Demo local',
-          score: 50,
-          priority: 'media',
-          action: 'Conecta la API para ver datos reales'
-        });
+      document.getElementById('clear').addEventListener('click', () => {
+        demoLeads = [];
+        persist();
         render();
+        statusEl.innerHTML = '<small>Leads borrados.</small>';
       });
 
       render();
