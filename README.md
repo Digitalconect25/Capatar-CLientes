@@ -84,8 +84,13 @@ Abre `frontend/index.html` en tu navegador para usar el sistema directamente (si
 2. Crea leads en el formulario.
 3. Se guardan automáticamente en `localStorage`.
 4. Puedes borrar todo desde el botón **Borrar todos**.
+5. Puedes exportar los leads a CSV con el botón **Exportar CSV**.
 
 > Si luego quieres API/CRM, puedes activar el backend FastAPI de este mismo repo.
+
+### Mock visual (arreglos aplicados)
+
+Archivo: `frontend/vista_previa.svg`
 
 ## Despliegue en GitHub
 

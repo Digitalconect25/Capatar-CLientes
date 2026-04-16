@@ -45,10 +45,13 @@
           <select id="best_time_slot"><option>manana</option><option selected>tarde</option><option>noche</option></select>
           <label>Fuente</label>
           <select id="source"><option selected>meta_ads</option><option>web</option><option>referido</option><option>organico</option></select>
+          <label>Estado comercial</label>
+          <select id="stage"><option selected>nuevo</option><option>contactado</option><option>oferta</option><option>cerrado</option></select>
           <label><input id="wants_portability" type="checkbox" checked /> Quiere portabilidad</label>
           <label><input id="has_confirmed_coverage" type="checkbox" checked /> Cobertura confirmada</label>
           <label><input id="gdpr_consent" type="checkbox" checked /> Consentimiento RGPD</label>
           <button id="btn">Guardar lead</button>
+          <button id="export" type="button" style="background:#0b9b54">Exportar CSV</button>
           <button id="clear" type="button" style="background:#a0a8b3">Borrar todos</button>
           <p id="status"><small>Funciona sin API: guarda todo en tu navegador (localStorage).</small></p>
         </section>
@@ -56,6 +59,9 @@
         <section class="card">
           <h2>Leads captados (preview)</h2>
           <div id="results"></div>
+          <hr />
+          <h3>Pipeline</h3>
+          <div id="pipeline"></div>
         </section>
       </div>
       <p style="margin-top:16px">Modo gratuito sin servidor: diseño funcional + almacenamiento local.</p>
@@ -63,6 +69,7 @@
 
     <script>
       const results = document.getElementById('results');
+      const pipeline = document.getElementById('pipeline');
       let demoLeads = JSON.parse(localStorage.getItem('vibemovil_leads') || '[]');
       const statusEl = document.getElementById('status');
       
@@ -110,9 +117,16 @@
             <strong>${l.full_name}</strong>
             <span class="pill ${l.priority}">${l.priority.toUpperCase()}</span>
             <div>Score: <b>${l.score}</b></div>
+            <div>Estado: <b>${l.stage || 'nuevo'}</b></div>
             <div>Acción: ${l.action}</div>
           </div>
         `).join('');
+
+        const stages = ['nuevo', 'contactado', 'oferta', 'cerrado'];
+        pipeline.innerHTML = stages.map(s => {
+          const count = demoLeads.filter(l => (l.stage || 'nuevo') === s).length;
+          return `<div><b>${s.toUpperCase()}</b>: ${count}</div>`;
+        }).join('');
       }
 
       document.getElementById('btn').addEventListener('click', () => {
@@ -131,6 +145,7 @@
           has_confirmed_coverage: document.getElementById('has_confirmed_coverage').checked,
           gdpr_consent: document.getElementById('gdpr_consent').checked,
           source: document.getElementById('source').value,
+          stage: document.getElementById('stage').value,
         };
 
         if (!payload.gdpr_consent) {
@@ -161,6 +176,24 @@
         persist();
         render();
         statusEl.innerHTML = '<small>Leads borrados.</small>';
+      });
+
+      document.getElementById('export').addEventListener('click', () => {
+        if (!demoLeads.length) {
+          statusEl.innerHTML = '<small style="color:#e74c3c">No hay leads para exportar.</small>';
+          return;
+        }
+        const headers = ['id','full_name','phone','city','lead_type','budget_eur','source','stage','score','priority','action'];
+        const rows = demoLeads.map(l => headers.map(h => `"${String(l[h] ?? '').replaceAll('"', '""')}"`).join(','));
+        const csv = [headers.join(','), ...rows].join('\\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vibemovil-leads.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        statusEl.innerHTML = '<small style="color:#0b9b54">CSV exportado.</small>';
       });
 
       render();
