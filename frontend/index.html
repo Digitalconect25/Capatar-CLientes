@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VibeMovil Lead Engine - Vista previa</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; color: #18212f; }
+      .wrap { max-width: 1024px; margin: 0 auto; padding: 20px; }
+      .grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+      .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+      h1 { margin: 0 0 12px; }
+      label { display:block; margin: 8px 0 4px; font-size: 14px; }
+      input, select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cdd7e3; }
+      button { margin-top: 12px; background:#1652f0; color:#fff; border:0; padding:10px 12px; border-radius:8px; cursor:pointer; }
+      .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; color:#fff; }
+      .alta { background:#0b9b54; }
+      .media { background:#f39c12; }
+      .baja { background:#e74c3c; }
+      .lead { border-top:1px solid #edf1f5; padding:10px 0; }
+      code { background:#f3f5f8; padding:2px 4px; border-radius:4px; }
+      @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>VibeMovil Lead Engine · Vista previa</h1>
+      <div class="grid">
+        <section class="card">
+          <h2>Nuevo lead (demo)</h2>
+          <label>Nombre</label><input id="full_name" value="Laura García" />
+          <label>Email</label><input id="email" value="laura@example.com" />
+          <label>Teléfono</label><input id="phone" value="+34 612345678" />
+          <label>Código postal</label><input id="postal_code" value="28001" />
+          <label>Ciudad</label><input id="city" value="Madrid" />
+          <label>Región</label><input id="region" value="Madrid" />
+          <label>Tipo de lead</label>
+          <select id="lead_type">
+            <option>portabilidad</option><option selected>fibra_movil</option><option>solo_movil</option><option>autonomo_pyme</option>
+          </select>
+          <label>Presupuesto (€)</label><input id="budget_eur" type="number" value="45" />
+          <label>Canal preferido</label>
+          <select id="preferred_channel"><option selected>llamada</option><option>email</option><option>sms</option><option>whatsapp</option></select>
+          <label>Mejor franja</label>
+          <select id="best_time_slot"><option>manana</option><option selected>tarde</option><option>noche</option></select>
+          <label>Fuente</label>
+          <select id="source"><option selected>meta_ads</option><option>web</option><option>referido</option><option>organico</option></select>
+          <label><input id="wants_portability" type="checkbox" checked /> Quiere portabilidad</label>
+          <label><input id="has_confirmed_coverage" type="checkbox" checked /> Cobertura confirmada</label>
+          <label><input id="gdpr_consent" type="checkbox" checked /> Consentimiento RGPD</label>
+          <label>API Base URL</label><input id="api_base" value="http://localhost:8000" />
+          <button id="btn">Crear lead real</button>
+          <p id="status"><small>Conecta con tu API y crea leads reales.</small></p>
+        </section>
+
+        <section class="card">
+          <h2>Leads captados (preview)</h2>
+          <div id="results"></div>
+        </section>
+      </div>
+      <p style="margin-top:16px">Esta vista está conectada a <code>POST /leads</code> y <code>GET /leads</code>.</p>
+    </div>
+
+    <script>
+      const results = document.getElementById('results');
+      let demoLeads = [];
+      const statusEl = document.getElementById('status');
+
+      function apiBase() {
+        return document.getElementById('api_base').value.replace(/\/$/, '');
+      }
+
+      function render() {
+        if (!demoLeads.length) {
+          results.innerHTML = '<p><small>No hay leads todavía.</small></p>';
+          return;
+        }
+        results.innerHTML = demoLeads.map(l => `
+          <div class="lead">
+            <strong>${l.full_name}</strong>
+            <span class="pill ${l.priority}">${l.priority.toUpperCase()}</span>
+            <div>Score: <b>${l.score}</b></div>
+            <div>Acción: ${l.action}</div>
+          </div>
+        `).join('');
+      }
+
+      async function loadLeads() {
+        try {
+          const response = await fetch(`${apiBase()}/leads?limit=20`);
+          if (!response.ok) throw new Error(`GET /leads -> ${response.status}`);
+          demoLeads = await response.json();
+          render();
+        } catch (error) {
+          statusEl.innerHTML = `<small style="color:#e74c3c">Error cargando leads: ${error.message}</small>`;
+        }
+      }
+
+      document.getElementById('btn').addEventListener('click', async () => {
+        const payload = {
+          full_name: document.getElementById('full_name').value,
+          phone: document.getElementById('phone').value,
+          email: document.getElementById('email').value,
+          postal_code: document.getElementById('postal_code').value,
+          city: document.getElementById('city').value,
+          region: document.getElementById('region').value,
+          lead_type: document.getElementById('lead_type').value,
+          budget_eur: Number(document.getElementById('budget_eur').value),
+          wants_portability: document.getElementById('wants_portability').checked,
+          preferred_channel: document.getElementById('preferred_channel').value,
+          best_time_slot: document.getElementById('best_time_slot').value,
+          has_confirmed_coverage: document.getElementById('has_confirmed_coverage').checked,
+          gdpr_consent: document.getElementById('gdpr_consent').checked,
+          source: document.getElementById('source').value,
+        };
+
+        try {
+          const response = await fetch(`${apiBase()}/leads`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || `POST /leads -> ${response.status}`);
+          statusEl.innerHTML = '<small style="color:#0b9b54">Lead creado correctamente.</small>';
+          await loadLeads();
+        } catch (error) {
+          statusEl.innerHTML = `<small style="color:#e74c3c">Error creando lead: ${error.message}</small>`;
+        }
+      });
+
+      loadLeads().catch(() => {
+        demoLeads.unshift({
+          full_name: 'Demo local',
+          score: 50,
+          priority: 'media',
+          action: 'Conecta la API para ver datos reales'
+        });
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>
