@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f5f7fb"/>
+  <text x="40" y="50" font-family="Arial" font-size="30" fill="#18212f">VibeMovil Lead Engine · Vista previa (sin API)</text>
+  <rect x="40" y="90" width="520" height="620" rx="14" fill="white" stroke="#d8e0ea"/>
+  <text x="65" y="130" font-family="Arial" font-size="24" fill="#18212f">Nuevo lead (demo)</text>
+  <g font-family="Arial" font-size="16" fill="#2a3442">
+    <text x="65" y="170">Nombre, Email, Teléfono, Ciudad, Tipo de lead</text>
+    <text x="65" y="198">Canal preferido, Presupuesto, Fuente</text>
+    <text x="65" y="226">Estado comercial + RGPD</text>
+  </g>
+  <rect x="65" y="260" width="170" height="40" rx="8" fill="#1652f0"/>
+  <text x="83" y="286" font-family="Arial" font-size="16" fill="white">Guardar lead</text>
+  <rect x="250" y="260" width="170" height="40" rx="8" fill="#0b9b54"/>
+  <text x="268" y="286" font-family="Arial" font-size="16" fill="white">Exportar CSV</text>
+  <rect x="435" y="260" width="110" height="40" rx="8" fill="#a0a8b3"/>
+  <text x="452" y="286" font-family="Arial" font-size="16" fill="white">Borrar</text>
+
+  <rect x="600" y="90" width="560" height="620" rx="14" fill="white" stroke="#d8e0ea"/>
+  <text x="625" y="130" font-family="Arial" font-size="24" fill="#18212f">Leads captados</text>
+  <rect x="625" y="155" width="510" height="95" rx="8" fill="#f9fbff" stroke="#e2e8f0"/>
+  <text x="645" y="185" font-family="Arial" font-size="18" fill="#18212f">Laura García   ALTA   Score: 87</text>
+  <text x="645" y="215" font-family="Arial" font-size="15" fill="#425063">Acción: Llamar en &lt;5 min y enviar oferta</text>
+
+  <text x="625" y="300" font-family="Arial" font-size="24" fill="#18212f">Pipeline</text>
+  <g font-family="Arial" font-size="17" fill="#2a3442">
+    <text x="625" y="340">NUEVO: 8</text>
+    <text x="625" y="370">CONTACTADO: 4</text>
+    <text x="625" y="400">OFERTA: 2</text>
+    <text x="625" y="430">CERRADO: 1</text>
+  </g>
+
+  <text x="40" y="740" font-family="Arial" font-size="14" fill="#6b7785">Mock visual de la versión arreglada sin API y sin coste.</text>
+</svg>
